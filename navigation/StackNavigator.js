@@ -3,6 +3,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { TouchableOpacity, Text } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 //Librerias Externas para el funcionamiento de la aplicación
 import * as SecureStore from 'expo-secure-store';
@@ -10,6 +11,7 @@ import * as SecureStore from 'expo-secure-store';
 //Screens de la aplicación
 import LoginScreen from '../screens/LoginScreen';
 import MainScreen from '../screens/MainScreen';
+import PantallaInicioDatos from '../screens/PantallaInicioDatos';
 
 //Screens del modulo de almacen
 import AlmacenScreen from '../screens/AlmacenScreen';
@@ -27,10 +29,10 @@ const StackNavigator = () => {
     <NavigationContainer>
       <StatusBar style='auto' />
       <Stack.Navigator>
-        <Stack.Screen
+      <Stack.Screen
           name='Inicio'
           component={LoginScreen}
-          options={{
+          options={({ navigation }) => ({
             title: 'Inicio de sesión',
             gesturesEnabled: false,
             headerStyle: {
@@ -40,8 +42,22 @@ const StackNavigator = () => {
               color: '#FFF',
             },
             headerTintColor: 'white',
-          }}
+            // Aquí se añade el icono en el headerRight
+            headerRight: () => (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('PantallaInicioDatos')}
+                style={{ marginRight: 20 }}
+              >
+                <MaterialIcons name="assignment" size={24} color="#FFF" />
+              </TouchableOpacity>
+            ),
+          })}
         />
+        <Stack.Screen
+            name="PantallaInicioDatos"
+            component={PantallaInicioDatos}
+            options={{ headerShown: false }}
+          />
         <Stack.Screen
           name='Principal'
           component={MainScreen}

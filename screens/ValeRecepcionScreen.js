@@ -366,7 +366,7 @@ const SubMenu3Screen = ({ navigation, route }) => {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 1,
     });
 
@@ -395,7 +395,7 @@ const SubMenu3Screen = ({ navigation, route }) => {
 
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 1,
     });
 
