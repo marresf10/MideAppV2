@@ -167,7 +167,7 @@ const SubMenu3Screen = ({ navigation, route }) => {
         } else if (equipos.length == 0) {
           return Alert.alert('¡Importante!', 'Registre un equipo para poder navegar a la siguiente sección');
         }
-        setTitleForm('CONFIRMAR DATOS');
+        setTitleForm('CONFIRMAR DATOSS');
         setVisualizedForm(4);
         loadNotes();
       } else {
