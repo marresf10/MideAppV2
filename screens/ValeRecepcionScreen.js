@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Platform } from 'react-native';
 
 import {
   SafeAreaView,
@@ -322,31 +323,51 @@ const SubMenu3Screen = ({ navigation, route }) => {
         console.error(error);
       });
   };
-
+  
+  // Función para seleccionar un archivo
   const pickAFile = async () => {
-    setDescripciónArchivoGeneral('');
-    
+    console.log("Intentando seleccionar un archivo...");
+  
     try {
       let result = await DocumentPicker.getDocumentAsync();
-      
-      if (result.type === 'cancel') {
+  
+      console.log("Resultado del DocumentPicker:", result);
+  
+      // Verificar si el archivo fue cancelado
+      if (result.canceled) {
+        console.log("Selección de archivo cancelada.");
         setFile({ uri: null, type: 'cancelled' });
-      } else if (result.uri) {
-        const ext = result.uri.split('.').pop();
+        return;
+      }
+  
+      // Verificar si `result.assets` existe y contiene el archivo
+      const selectedFile = result.assets ? result.assets[0] : result;
+  
+      if (selectedFile.uri) {
+        const ext = selectedFile.uri.split('.').pop();
         const unsupportedFormats = ['mp4', 'mwv', 'mpeg', 'mp3', 'wav', 'wma', 'opus', 'ogg'];
-        
+  
         if (unsupportedFormats.includes(ext)) {
           Alert.alert('¡Importante!', 'El archivo seleccionado contiene un formato no aceptado');
           setFile({ uri: null, type: 'cancelled' });
         } else {
-          // Asegura que result contenga propiedades `uri`, `name` y `mimeType`
-          setFile({
-            uri: result.uri,
-            name: result.name || 'archivo.pdf', // Nombre por defecto si `name` no está presente
-            mimeType: result.mimeType || 'application/pdf',
-            type: 'success'
-          });
+          // Crear el archivo que se subirá
+          const newFile = {
+            uri: selectedFile.uri,
+            name: selectedFile.name || 'archivo.pdf',
+            mimeType: selectedFile.mimeType || 'application/pdf',
+            idvalearchivo: Date.now().toString(),
+            descripcion: 'Descripción del archivo',
+          };
+  
+          console.log("Archivo válido seleccionado:", newFile);
+  
+          // Actualizar el estado de `files`
+          setFiles((prevFiles) => [...prevFiles, newFile]);
+          setFile(newFile);
         }
+      } else {
+        console.log("No se obtuvo URI en el archivo seleccionado.");
       }
     } catch (error) {
       console.log("Error al seleccionar archivo:", error);
@@ -356,32 +377,50 @@ const SubMenu3Screen = ({ navigation, route }) => {
 
   const pickAnImage = async () => {
     setDescripciónArchivoGeneral('');
-    // Ask the user for the permission to access the media library
+    // Solicitar permiso para acceder a la galería
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
+  
     if (permissionResult.granted === false) {
-      Alert.alert('¡Importante!', 'Usted ha rechazado la solicitud de permisos para acceso a galeria');
+      Alert.alert('¡Importante!', 'Usted ha rechazado la solicitud de permisos para acceso a galería');
       return;
     }
-
+  
+    // Intentar seleccionar la imagen
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: false,
       quality: 1,
     });
-
-    if (!result.cancelled) {
-      let ext = result.uri.split('.').pop();
-      if (ext != 'jpg' && ext != 'jpeg' && ext != 'png' && ext != 'bmp') {
+  
+    // Verificar si se canceló la selección
+    if (result.canceled) {
+      console.log("Selección de imagen cancelada.");
+      setFile({ uri: null, type: 'cancelled' });
+      return;
+    }
+  
+    // Obtener la URI de la imagen seleccionada
+    const selectedImage = result.assets ? result.assets[0] : result;
+  
+    if (selectedImage.uri) {
+      let ext = selectedImage.uri.split('.').pop();
+      if (!['jpg', 'jpeg', 'png', 'bmp'].includes(ext)) {
         Alert.alert('¡Importante!', 'El archivo seleccionado contiene un formato no aceptado');
         setFile({ uri: null, type: 'cancelled' });
         return;
       }
-      setFile({ uri: result.uri, type: 'success', mimeType: 'image/jpeg', name: foliotmp + '.jpg' });
-    } else if (result.cancelled) {
-      setFile({ uri: null, type: 'cancelled' });
+  
+      // Actualizar el estado con la imagen seleccionada
+      setFile({
+        uri: selectedImage.uri,
+        type: 'success',
+        mimeType: selectedImage.type || 'image/jpeg',
+        name: foliotmp + '.' + ext,
+      });
+    } else {
+      console.log("No se obtuvo URI en la imagen seleccionada."); // Manejo de error inesperado
     }
-  };
+  };  
 
   const takeAPhoto = async () => {
     setDescripciónArchivoGeneral('');
@@ -406,7 +445,71 @@ const SubMenu3Screen = ({ navigation, route }) => {
     }
   };
 
-  const uploadFile = async () => {
+  const uploadFile = async () => { 
+    // Validaciones iniciales
+    if (!file || !file.uri || file.type === 'cancelled') {
+      Alert.alert('¡Importante!', 'Seleccione un archivo');
+      return;
+    } else if (descripciónArchivoGeneral.length < 1) {
+      Alert.alert('¡Importante!', 'El campo de descripción se encuentra vacío');
+      return;
+    }
+  
+    try {
+      setUploading(true);
+  
+      // Crear FormData
+      let data = new FormData();
+      data.append('foliotmp', foliotmp);
+      data.append('esporapp', '1');
+      data.append('archivo_recepcion', {
+        uri: Platform.OS === 'android' ? file.uri : file.uri.replace('file://', ''),
+        name: file.name,
+        type: file.mimeType,
+      });
+      data.append('archivo_descripcion_recepcion', descripciónArchivoGeneral);
+      data.append('token', token);
+      data.append('idusuario', idUsuario);
+  
+      // Imprimir los datos para depuración
+      console.log('Datos a enviar:', data);
+  
+      // Realizar la solicitud POST
+      const response = await fetch(baseUrl + 'ERP/php/ap_ws_recepcion_upload_archivos_recepcion.php', {
+        method: 'POST',
+        body: data,
+        // No es necesario especificar el Content-Type, fetch lo maneja automáticamente
+      });
+  
+      // Verificar la respuesta del servidor
+      if (!response.ok) {
+        throw new Error(`Error en la respuesta: ${response.status}`);
+      }
+  
+      // Parsear la respuesta JSON
+      const result = await response.json();
+  
+      setUploading(false);
+  
+      // Manejar los resultados de la respuesta
+      if (result && result[0].exito === '1' && result[0].error === 0) {
+        Alert.alert('¡Importante!', 'El archivo se ha subido correctamente');
+        setFile({ uri: null, type: 'cancelled' });
+        setDescripciónArchivoGeneral('');
+        loadFiles(); // Recargar la lista de archivos
+      } else {
+        Alert.alert('¡Importante!', 'El archivo no se ha podido subir');
+      }
+  
+    } catch (error) {
+      setUploading(false);
+      console.log('uploadFile error:', error);
+      Alert.alert('¡Error!', `No se pudo subir el archivo: ${error.message || error}`);
+    }
+  };  
+  
+  /*
+  const uploadFileViejo = async () => {
     if (file == null || file == '' || file.uri == null || file.type == 'cancel') {
       Alert.alert('¡Importante!', 'Seleccione un archivo');
     } else if (descripciónArchivoGeneral.length < 1) {
@@ -453,7 +556,7 @@ const SubMenu3Screen = ({ navigation, route }) => {
         });
     }
   };
-
+  */
   const deleteFileItem = async (idvale) => {
     let data = new FormData();
     data.append('esporapp', 1);
@@ -488,10 +591,15 @@ const SubMenu3Screen = ({ navigation, route }) => {
       });
   };
 
+  // Componente para mostrar un archivo individual en la lista
+  /*
   const FileItem = ({ id, datafile, descripcion }) => {
+    console.log("Renderizando FileItem:", id, datafile, descripcion); // Verificación de datos en cada elemento
+
     let ext = datafile.split('.').pop();
     let filename = datafile.replace(/\.[^/.]+$/, '');
-    let item = (
+
+    return (
       <View
         style={{
           elevation: 3,
@@ -504,11 +612,11 @@ const SubMenu3Screen = ({ navigation, route }) => {
         }}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <TouchableOpacity
-            onPress={() => Linking.openURL('https://sgi.midelab.com/ERP/archivos_recepcion/' + datafile)}
-            style={{ justifyContent: 'center', alignItems: 'center', alignContent: 'center', alignSelf: 'center' }}>
-            {ext == 'png' || ext == 'jpg' || ext == 'jpeg' ? (
+            onPress={() => Linking.openURL(datafile)}
+            style={{ justifyContent: 'center', alignItems: 'center' }}>
+            {ext === 'png' || ext === 'jpg' || ext === 'jpeg' ? (
               <Image
-                source={{ uri: 'https://sgi.midelab.com/ERP/archivos_recepcion/' + datafile }}
+                source={{ uri: datafile }}
                 style={{ width: 50, height: 50, margin: 2, borderRadius: 10 }}
               />
             ) : (
@@ -522,16 +630,16 @@ const SubMenu3Screen = ({ navigation, route }) => {
               {filename}
             </Text>
           </View>
-          <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4, justifyContent: 'center', alignContent: 'center' }}>
+          <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4 }}>
             <Text style={{ color: 'gray', textAlign: 'justify' }}>Descripción: {descripcion}</Text>
           </View>
-          <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4, justifyContent: 'center', alignContent: 'center' }}>
+          <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4 }}>
             <Text style={{ color: 'gray', textAlign: 'justify' }}>Tipo de archivo: {ext.toUpperCase()}</Text>
           </View>
         </View>
         <TouchableOpacity
           onPress={() =>
-            Alert.alert('Eliminar archivo general', '¿Esta seguro de eliminar el archivo?', [
+            Alert.alert('Eliminar archivo general', '¿Está seguro de eliminar el archivo?', [
               { text: 'Salir' },
               { text: 'Confirmar', onPress: () => deleteFileItem(id) },
             ])
@@ -541,8 +649,66 @@ const SubMenu3Screen = ({ navigation, route }) => {
         </TouchableOpacity>
       </View>
     );
-    return item;
   };
+  */
+
+  const FileItem = ({ id, datafile, name, descripcion }) => {
+    console.log("Renderizando FileItem:", id, datafile, name, descripcion); // Verificación de datos en cada elemento
+  
+    // Extraer extensión de archivo
+    let ext = datafile.split('.').pop();
+  
+    return (
+      <View
+        style={{
+          elevation: 3,
+          backgroundColor: 'white',
+          flexDirection: 'row',
+          margin: 4,
+          justifyContent: 'space-between',
+          padding: 2,
+          borderRadius: 10,
+        }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <TouchableOpacity
+            onPress={() => Linking.openURL(datafile)}
+            style={{ justifyContent: 'center', alignItems: 'center' }}>
+            {ext === 'png' || ext === 'jpg' || ext === 'jpeg' ? (
+              <Image
+                source={{ uri: datafile }}
+                style={{ width: 50, height: 50, margin: 2, borderRadius: 10 }}
+              />
+            ) : (
+              <AntDesign name='file1' size={47} color='lightgray' />
+            )}
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 5 }}>
+          <View style={{ flex: 2, padding: 4 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 15 }} numberOfLines={1} ellipsizeMode='tail'>
+              {name} {/* Usar el nombre del archivo */}
+            </Text>
+          </View>
+          <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4 }}>
+            <Text style={{ color: 'gray', textAlign: 'justify' }}>Descripción: {descripcion}</Text>
+          </View>
+          <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4 }}>
+            <Text style={{ color: 'gray', textAlign: 'justify' }}>Tipo de archivo: {ext.toUpperCase()}</Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          onPress={() =>
+            Alert.alert('Eliminar archivo general', '¿Está seguro de eliminar el archivo?', [
+              { text: 'Salir' },
+              { text: 'Confirmar', onPress: () => deleteFileItem(id) },
+            ])
+          }
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <AntDesign name='close' size={24} color='lightgray' />
+        </TouchableOpacity>
+      </View>
+    );
+  };  
 
   const onRefresh = React.useCallback(async () => {
     setIsRefreshing(true);
@@ -1398,13 +1564,17 @@ const SubMenu3Screen = ({ navigation, route }) => {
                   <>
                     <FlatList
                       data={files}
-                      renderItem={({ item, key }) => {
-                        return <FileItem id={item.idvalearchivo} datafile={item.archivo} descripcion={item.descripcion} key={key} />;
-                      }}
-                      keyExtractor={(item) => item.idvalearchivo.toString()}
-                      refreshControl={<RefreshControl onRefresh={onRefresh} refreshing={isRefreshing} />}
+                      renderItem={({ item }) => (
+                        <FileItem
+                          id={item.idvalearchivo}
+                          datafile={item.uri}
+                          name={item.name}
+                          descripcion={item.descripcion}
+                        />
+                      )}
+                      keyExtractor={(item) => item.idvalearchivo}
                     />
-                  </>
+                    </>
                 ) : (
                   <View
                     style={{
