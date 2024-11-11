@@ -382,82 +382,58 @@ const SubMenu3Screen = ({ navigation, route }) => {
       setFile({ uri: null, type: 'error' });
     }
   };  
-/*
-  const pickAnImageOld = async () => {
-    setDescripciónArchivoGeneral('');
-    // Solicitar permiso para acceder a la galería
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  
-    if (permissionResult.granted === false) {
-      Alert.alert('¡Importante!', 'Usted ha rechazado la solicitud de permisos para acceso a galería');
-      return;
-    }
-  
-    // Intentar seleccionar la imagen
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: false,
-      quality: 1,
-    });
-  
-    // Verificar si se canceló la selección
-    if (result.canceled) {
-      console.log("Selección de imagen cancelada.");
-      setFile({ uri: null, type: 'cancelled' });
-      return;
-    }
-  
-    // Obtener la URI de la imagen seleccionada
-    const selectedImage = result.assets ? result.assets[0] : result;
-  
-    if (selectedImage.uri) {
-      let ext = selectedImage.uri.split('.').pop();
-      if (!['jpg', 'jpeg', 'png', 'bmp'].includes(ext)) {
-        Alert.alert('¡Importante!', 'El archivo seleccionado contiene un formato no aceptado');
-        setFile({ uri: null, type: 'cancelled' });
-        return;
-      }
-  
-      // Actualizar el estado con la imagen seleccionada
-      setFile({
-        uri: selectedImage.uri,
-        type: 'success',
-        mimeType: selectedImage.type || 'image/jpeg',
-        name: foliotmp + '.' + ext,
+
+const takeAPhoto = async () => {
+  setDescripciónArchivoGeneral('');
+
+  const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+  if (permissionResult.granted === false) {
+    Alert.alert('¡Importante!', 'Usted ha rechazado la solicitud de permisos para acceso a la cámara');
+    return;
+  }
+
+  const result = await ImagePicker.launchCameraAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.All,
+    allowsEditing: false,
+    quality: 1,
+  });
+
+  if (!result.canceled) {
+    const selectedPhoto = result.assets ? result.assets[0] : result;
+    
+    try {
+      const uniqueId = new Date().getTime().toString();
+      const tempUri = `${FileSystem.documentDirectory}${uniqueId}.jpg`;
+
+      await FileSystem.copyAsync({
+        from: selectedPhoto.uri,
+        to: tempUri,
       });
-    } else {
-      console.log("No se obtuvo URI en la imagen seleccionada."); // Manejo de error inesperado
-    }
-  };  
-*/
 
-  const takeAPhoto = async () => {
-    setDescripciónArchivoGeneral('');
-    // Ask the user for the permission to access the camera
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      setFile({
+        uri: tempUri,
+        type: 'success',
+        mimeType: 'image/jpeg',
+        name: foliotmp + '.jpg',
+      });
 
-    if (permissionResult.granted === false) {
-      Alert.alert('¡Importante!', 'Usted ha rechazado la solicitud de permisos para acceso a galeria');
-      return;
-    }
+      console.log("Foto tomada y URI temporal generada:", tempUri);
 
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: false,
-      quality: 1,
-    });
-
-    if (!result.cancelled) {
-      setFile({ uri: result.uri, type: 'success', mimeType: 'image/jpeg', name: foliotmp + '.jpg' });
-    } else if (result.cancelled) {
+    } catch (error) {
+      console.error("Error al copiar la foto:", error);
+      Alert.alert('¡Importante!', 'Hubo un problema al procesar la foto');
       setFile({ uri: null, type: 'cancelled' });
     }
-  };
+  } else {
+    setFile({ uri: null, type: 'cancelled' });
+  }
+};
+
 
 const pickAnImage = async () => {
   setDescripciónArchivoGeneral('');
   
-  // Solicitar permiso para acceder a la galería
   const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
   if (permissionResult.granted === false) {
@@ -465,21 +441,18 @@ const pickAnImage = async () => {
     return;
   }
 
-  // Intentar seleccionar la imagen
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.All,
     allowsEditing: false,
     quality: 1,
   });
 
-  // Verificar si se canceló la selección
   if (result.canceled) {
     console.log("Selección de imagen cancelada.");
     setFile({ uri: null, type: 'cancelled' });
     return;
   }
 
-  // Obtener la URI de la imagen seleccionada
   const selectedImage = result.assets ? result.assets[0] : result;
 
   if (selectedImage.uri) {
@@ -491,32 +464,29 @@ const pickAnImage = async () => {
     }
 
     try {
-      // Crear una URI temporal única usando una cadena aleatoria
-      const uniqueId = new Date().getTime().toString();  // Puedes usar un timestamp o alguna cadena única
+      const uniqueId = new Date().getTime().toString();
       const tempUri = `${FileSystem.documentDirectory}${uniqueId}.${ext}`;
       
-      // Copiar la imagen seleccionada a la URI temporal
       await FileSystem.copyAsync({
         from: selectedImage.uri,
         to: tempUri,
       });
 
-      // Actualizar el estado con la imagen seleccionada y la URI temporal
       setFile({
-        uri: tempUri,  // Usar la URI temporal generada
+        uri: tempUri,
         type: 'success',
         mimeType: selectedImage.type || 'image/jpeg',
         name: foliotmp + '.' + ext,
       });
 
-      console.log("Imagen seleccionada y URI temporal generada:", tempUri);  // Verificar la URI generada
+      console.log("Imagen seleccionada y URI temporal generada:", tempUri);
     } catch (error) {
       console.error("Error al copiar la imagen:", error);
       Alert.alert('¡Importante!', 'Hubo un problema al procesar la imagen');
       setFile({ uri: null, type: 'cancelled' });
     }
   } else {
-    console.log("No se obtuvo URI en la imagen seleccionada."); // Manejo de error inesperado
+    console.log("No se obtuvo URI en la imagen seleccionada.");
   }
 };
 
@@ -529,14 +499,13 @@ const pickAnImage = async () => {
   try {
     setUploading(true);
 
-    // Usar el FileSystem para crear una URI accesible
     const tempUri = `${FileSystem.documentDirectory}${file.name}`;
     await FileSystem.copyAsync({
       from: file.uri,
       to: tempUri,
     });
 
-    console.log("URI temporal del archivo:", tempUri);  // Verifica si la URI es válida
+    console.log("URI temporal del archivo:", tempUri);
 
     const data = new FormData();
     data.append('foliotmp', foliotmp);
@@ -545,7 +514,6 @@ const pickAnImage = async () => {
     data.append('token', token);
     data.append('idusuario', idUsuario);
 
-    // Imprimir los datos que se van a enviar en el FormData
     console.log("Datos a enviar con FormData:");
     console.log('foliotmp:', foliotmp);
     console.log('esporapp:', '1');
@@ -553,14 +521,12 @@ const pickAnImage = async () => {
     console.log('token:', token);
     console.log('idusuario:', idUsuario);
 
-    // Adjuntar el archivo con el tipo MIME correcto
     data.append('archivo_recepcion', {
-      uri: tempUri,  // Usar la URI temporal copiada
+      uri: tempUri,
       name: file.name,
-      type: 'image/jpeg',  // O el tipo adecuado si es otro tipo de archivo
+      type: 'image/jpeg',
     });
 
-    // Hacer la solicitud HTTP usando axios
     const response = await axios.post(
       'https://sgi.midelab.com/ERP/php/ap_ws_recepcion_upload_archivos_recepcion.php',
       data,
@@ -569,7 +535,7 @@ const pickAnImage = async () => {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json',
         },
-        timeout: 60000,  // Aumentando el tiempo de espera
+        timeout: 60000,
       }
     );
 
@@ -588,116 +554,6 @@ const pickAnImage = async () => {
   }
 };
 
-
-  /*FUNCIONA CON IMAGENES VIA WEB
-  const uploadFile = async () => {
-    if (!file || !file.uri || file.type === 'cancelled') {
-      Alert.alert('¡Importante!', 'Seleccione un archivo');
-      return;
-    }
-  
-    try {
-      setUploading(true);
-  
-      // Crear la URI temporal y confirmar que esté correctamente configurada
-      const tempUri = `${FileSystem.cacheDirectory}${file.name}`;
-      await FileSystem.copyAsync({
-        from: file.uri,
-        to: tempUri,
-      });
-  
-      console.log("URI temporal del archivo:", tempUri);
-  
-      const data = new FormData();
-      data.append('foliotmp', foliotmp);
-      data.append('esporapp', '1');
-      data.append('archivo_recepcion', {
-        uri: 'https://via.placeholder.com/150',  // Usar una imagen pública temporal
-        name: 'imagen_prueba.jpg',
-        type: 'image/jpeg',
-      });      
-      data.append('archivo_descripcion_recepcion', descripciónArchivoGeneral);
-      data.append('token', token);
-      data.append('idusuario', idUsuario);
-  
-      console.log("Datos a enviar con axios:", data);
-  
-      const response = await axios.post(
-        'https://sgi.midelab.com/ERP/php/ap_ws_recepcion_upload_archivos_recepcion.php',
-        data,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Accept': 'application/json',
-          },
-          timeout: 10000, // Configurar un tiempo de espera
-        }
-      );
-  
-      const result = response.data;
-      setUploading(false);
-      if (result && result[0].exito === '1') {
-        Alert.alert('¡Importante!', 'El archivo se ha subido correctamente');
-        setFile({ uri: null, type: 'cancelled' });
-      } else {
-        Alert.alert('¡Importante!', 'El archivo no se ha podido subir');
-      }
-    } catch (error) {
-      setUploading(false);
-      console.log('uploadFile error con axios:', error);
-      Alert.alert('¡Error!', 'No se pudo subir el archivo');
-    }
-  };
-*/
-  /*
-  const uploadFileViejo = async () => {
-    if (file == null || file == '' || file.uri == null || file.type == 'cancel') {
-      Alert.alert('¡Importante!', 'Seleccione un archivo');
-    } else if (descripciónArchivoGeneral.length < 1) {
-      Alert.alert('¡Importante!', 'El campo de descripción se encuentra vació');
-    } else {
-      setUploading(true);
-      let data = new FormData();
-      data.append('foliotmp', foliotmp);
-      data.append('esporapp', '1');
-      data.append('archivo_recepcion', {
-        uri: file.uri,
-        name: file.name,
-        type: file.mimeType,
-      });
-      data.append('archivo_descripcion_recepcion', descripciónArchivoGeneral);
-      data.append('token', token);
-      data.append('idusuario', idUsuario);
-      await fetch(baseUrl + 'ERP/php/ap_ws_recepcion_upload_archivos_recepcion.php', {
-        method: 'POST',
-        body: data,
-        header: {
-          'content-type': 'multipart/form-data',
-        },
-      })
-        .then((res) => res.json())
-        .then((response) => {
-          setUploading(false);
-          if (response == null) {
-            Alert.alert('¡Importante!', 'El archivo no se puede subir');
-          } else if (response[0].exito == '1' && response[0].error == 0) {
-            setFile({ uri: null, type: 'cancelled' });
-            setDescripciónArchivoGeneral('');
-            loadFiles();
-            Alert.alert('¡Importante!', 'El archivo se ha subido correctamente');
-          } else if (response[0].exito == 0) {
-            Alert.alert('¡Importante!', 'El archivo no se ha podido subir');
-          } else {
-            Alert.alert('¡Importante!', 'Ocurrio un error al intentar subir el archivo');
-          }
-        })
-        .catch((error) => {
-          console.log('uploadFile (1):');
-          console.log(error);
-        });
-    }
-  };
-  */
   const deleteFileItem = async (idvale) => {
     let data = new FormData();
     data.append('esporapp', 1);
@@ -732,71 +588,9 @@ const pickAnImage = async () => {
       });
   };
 
-  // Componente para mostrar un archivo individual en la lista
-  /*
-  const FileItem = ({ id, datafile, descripcion }) => {
-    console.log("Renderizando FileItem:", id, datafile, descripcion); // Verificación de datos en cada elemento
-
-    let ext = datafile.split('.').pop();
-    let filename = datafile.replace(/\.[^/.]+$/, '');
-
-    return (
-      <View
-        style={{
-          elevation: 3,
-          backgroundColor: 'white',
-          flexDirection: 'row',
-          margin: 4,
-          justifyContent: 'space-between',
-          padding: 2,
-          borderRadius: 10,
-        }}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <TouchableOpacity
-            onPress={() => Linking.openURL(datafile)}
-            style={{ justifyContent: 'center', alignItems: 'center' }}>
-            {ext === 'png' || ext === 'jpg' || ext === 'jpeg' ? (
-              <Image
-                source={{ uri: datafile }}
-                style={{ width: 50, height: 50, margin: 2, borderRadius: 10 }}
-              />
-            ) : (
-              <AntDesign name='file1' size={47} color='lightgray' />
-            )}
-          </TouchableOpacity>
-        </View>
-        <View style={{ flex: 5 }}>
-          <View style={{ flex: 2, padding: 4 }}>
-            <Text style={{ fontWeight: 'bold', fontSize: 15 }} numberOfLines={1} ellipsizeMode='tail'>
-              {filename}
-            </Text>
-          </View>
-          <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4 }}>
-            <Text style={{ color: 'gray', textAlign: 'justify' }}>Descripción: {descripcion}</Text>
-          </View>
-          <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4 }}>
-            <Text style={{ color: 'gray', textAlign: 'justify' }}>Tipo de archivo: {ext.toUpperCase()}</Text>
-          </View>
-        </View>
-        <TouchableOpacity
-          onPress={() =>
-            Alert.alert('Eliminar archivo general', '¿Está seguro de eliminar el archivo?', [
-              { text: 'Salir' },
-              { text: 'Confirmar', onPress: () => deleteFileItem(id) },
-            ])
-          }
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <AntDesign name='close' size={24} color='lightgray' />
-        </TouchableOpacity>
-      </View>
-    );
-  };
-  */
-
-  const FileItem = ({ id, datafile, name, descripcion }) => {
-    console.log("Renderizando FileItem:", id, datafile, name, descripcion); // Verificación de datos en cada elemento
+  const FileItemViejo = ({ id, datafile, name, descripcion }) => {
+    console.log("Renderizando FileItem:", id, datafile, name, descripcion);
   
-    // Extraer extensión de archivo
     let ext = datafile.split('.').pop();
   
     return (
@@ -828,6 +622,64 @@ const pickAnImage = async () => {
           <View style={{ flex: 2, padding: 4 }}>
             <Text style={{ fontWeight: 'bold', fontSize: 15 }} numberOfLines={1} ellipsizeMode='tail'>
               {name} {/* Usar el nombre del archivo */}
+            </Text>
+          </View>
+          <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4 }}>
+            <Text style={{ color: 'gray', textAlign: 'justify' }}>Descripción: {descripcion}</Text>
+          </View>
+          <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4 }}>
+            <Text style={{ color: 'gray', textAlign: 'justify' }}>Tipo de archivo: {ext.toUpperCase()}</Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          onPress={() =>
+            Alert.alert('Eliminar archivo general', '¿Está seguro de eliminar el archivo?', [
+              { text: 'Salir' },
+              { text: 'Confirmar', onPress: () => deleteFileItem(id) },
+            ])
+          }
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <AntDesign name='close' size={24} color='lightgray' />
+        </TouchableOpacity>
+      </View>
+    );
+  };  
+
+  const FileItem = ({ id, datafile, name, descripcion }) => {
+    console.log("Renderizando FileItem:", id, datafile, name, descripcion);
+  
+    // Verificar si datafile está definido y contiene una URI válida
+    let ext = datafile && typeof datafile === 'string' ? datafile.split('.').pop() : '';
+  
+    return (
+      <View
+        style={{
+          elevation: 3,
+          backgroundColor: 'white',
+          flexDirection: 'row',
+          margin: 4,
+          justifyContent: 'space-between',
+          padding: 2,
+          borderRadius: 10,
+        }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <TouchableOpacity
+            onPress={() => datafile && Linking.openURL(datafile)}
+            style={{ justifyContent: 'center', alignItems: 'center' }}>
+            {ext === 'png' || ext === 'jpg' || ext === 'jpeg' ? (
+              <Image
+                source={{ uri: datafile }}
+                style={{ width: 50, height: 50, margin: 2, borderRadius: 10 }}
+              />
+            ) : (
+              <AntDesign name='file1' size={47} color='lightgray' />
+            )}
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 5 }}>
+          <View style={{ flex: 2, padding: 4 }}>
+            <Text style={{ fontWeight: 'bold', fontSize: 15 }} numberOfLines={1} ellipsizeMode='tail'>
+              {name}
             </Text>
           </View>
           <View style={{ flex: 2, paddingLeft: 4, paddingBottom: 4 }}>
@@ -1346,7 +1198,7 @@ const pickAnImage = async () => {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.titleContainer}>
-        <Text style={styles.titleSubModule}>VALE RECEPCIÓN</Text>
+        <Text style={styles.titleSubModule}>VALE DE RECEPCIÓN</Text>
       </View>
       {!isRegistering && (
         <View style={styles.bottomTitleContainer}>
@@ -1382,8 +1234,8 @@ const pickAnImage = async () => {
             </View>
             <ScrollView keyboardShouldPersistTaps='handled'>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                <AntDesign name='doubleright' size={14} color='#003667' />
-                <Text style={{ color: '#003667', fontWeight: 'bold' }}> DATOS DEL CLIENTE</Text>
+                <AntDesign name='doubleright' size={20} color='#003667' />
+                <Text style={{ color: '#003667', fontWeight: 'bold' }}> DATOS DEL CLIENTE </Text>
               </View>
 
               <Text>Cliente: * </Text>
@@ -1579,8 +1431,8 @@ const pickAnImage = async () => {
                   paddingVertical: 8,
                   borderRadius: 3,
                 }}>
-                <MaterialIcons name='attach-file' size={20} color='white' />
-                <Text style={{ color: 'white' }}> SELECCIONAR ARCHIVO</Text>
+                <MaterialIcons name='attach-file' size={40} color='white' />
+                <Text style={{ color: 'white' }}> SELECCIONAR ARCHIVO </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => pickAnImage()}
@@ -1593,8 +1445,8 @@ const pickAnImage = async () => {
                   paddingVertical: 8,
                   borderRadius: 3,
                 }}>
-                <Entypo name='images' size={20} color='white' />
-                <Text style={{ color: 'white' }}> SELECCIONAR IMAGEN</Text>
+                <Entypo name='images' size={40} color='white' />
+                <Text style={{ color: 'white' }}> SELECCIONAR IMAGEN </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => takeAPhoto()}
@@ -1607,8 +1459,8 @@ const pickAnImage = async () => {
                   paddingVertical: 8,
                   borderRadius: 3,
                 }}>
-                <MaterialCommunityIcons name='camera' size={20} color='white' />
-                <Text style={{ color: 'white' }}> TOMAR FOTOGRAFÍA</Text>
+                <MaterialCommunityIcons name='camera' size={40} color='white' />
+                <Text style={{ color: 'white' }}> TOMAR FOTOGRAFÍA </Text>
               </TouchableOpacity>
               {file.type == 'success' ? (
                 <>
@@ -2266,7 +2118,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
   },
   titleContainer: {
-    height: 35,
+    height: 50,
     paddingHorizontal: 10,
     borderTopWidth: 1 / 2,
     borderColor: 'lightgray',

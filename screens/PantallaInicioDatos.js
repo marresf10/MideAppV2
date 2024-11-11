@@ -59,7 +59,7 @@ const PantallaInicioDatos = ({ navigation }) => {
         style={styles.continueButton}
         onPress={() => navigation.navigate('LoginScreen')}
       >
-        <Text style={styles.buttonText}>     Continuar     </Text>
+        <Text style={styles.buttonText}>     Volver     </Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
