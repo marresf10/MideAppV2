@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Platform } from 'react-native';
+import axios from 'axios';
+import * as MediaLibrary from 'expo-media-library';
 
 import {
   SafeAreaView,
@@ -120,6 +121,13 @@ const SubMenu3Screen = ({ navigation, route }) => {
     });
 
     return pruebita;
+  };
+
+  const requestPermissions = async () => {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Permiso de acceso al almacenamiento requerido');
+    }
   };
 
   const cerrarSesion = async () => {
@@ -374,8 +382,8 @@ const SubMenu3Screen = ({ navigation, route }) => {
       setFile({ uri: null, type: 'error' });
     }
   };  
-
-  const pickAnImage = async () => {
+/*
+  const pickAnImageOld = async () => {
     setDescripciónArchivoGeneral('');
     // Solicitar permiso para acceder a la galería
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -421,6 +429,7 @@ const SubMenu3Screen = ({ navigation, route }) => {
       console.log("No se obtuvo URI en la imagen seleccionada."); // Manejo de error inesperado
     }
   };  
+*/
 
   const takeAPhoto = async () => {
     setDescripciónArchivoGeneral('');
@@ -445,69 +454,201 @@ const SubMenu3Screen = ({ navigation, route }) => {
     }
   };
 
-  const uploadFile = async () => { 
-    // Validaciones iniciales
+const pickAnImage = async () => {
+  setDescripciónArchivoGeneral('');
+  
+  // Solicitar permiso para acceder a la galería
+  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+  if (permissionResult.granted === false) {
+    Alert.alert('¡Importante!', 'Usted ha rechazado la solicitud de permisos para acceso a galería');
+    return;
+  }
+
+  // Intentar seleccionar la imagen
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.All,
+    allowsEditing: false,
+    quality: 1,
+  });
+
+  // Verificar si se canceló la selección
+  if (result.canceled) {
+    console.log("Selección de imagen cancelada.");
+    setFile({ uri: null, type: 'cancelled' });
+    return;
+  }
+
+  // Obtener la URI de la imagen seleccionada
+  const selectedImage = result.assets ? result.assets[0] : result;
+
+  if (selectedImage.uri) {
+    let ext = selectedImage.uri.split('.').pop();
+    if (!['jpg', 'jpeg', 'png', 'bmp'].includes(ext)) {
+      Alert.alert('¡Importante!', 'El archivo seleccionado contiene un formato no aceptado');
+      setFile({ uri: null, type: 'cancelled' });
+      return;
+    }
+
+    try {
+      // Crear una URI temporal única usando una cadena aleatoria
+      const uniqueId = new Date().getTime().toString();  // Puedes usar un timestamp o alguna cadena única
+      const tempUri = `${FileSystem.documentDirectory}${uniqueId}.${ext}`;
+      
+      // Copiar la imagen seleccionada a la URI temporal
+      await FileSystem.copyAsync({
+        from: selectedImage.uri,
+        to: tempUri,
+      });
+
+      // Actualizar el estado con la imagen seleccionada y la URI temporal
+      setFile({
+        uri: tempUri,  // Usar la URI temporal generada
+        type: 'success',
+        mimeType: selectedImage.type || 'image/jpeg',
+        name: foliotmp + '.' + ext,
+      });
+
+      console.log("Imagen seleccionada y URI temporal generada:", tempUri);  // Verificar la URI generada
+    } catch (error) {
+      console.error("Error al copiar la imagen:", error);
+      Alert.alert('¡Importante!', 'Hubo un problema al procesar la imagen');
+      setFile({ uri: null, type: 'cancelled' });
+    }
+  } else {
+    console.log("No se obtuvo URI en la imagen seleccionada."); // Manejo de error inesperado
+  }
+};
+
+  const uploadFile = async () => {
+  if (!file || !file.uri || file.type === 'cancelled') {
+    Alert.alert('¡Importante!', 'Seleccione un archivo');
+    return;
+  }
+
+  try {
+    setUploading(true);
+
+    // Usar el FileSystem para crear una URI accesible
+    const tempUri = `${FileSystem.documentDirectory}${file.name}`;
+    await FileSystem.copyAsync({
+      from: file.uri,
+      to: tempUri,
+    });
+
+    console.log("URI temporal del archivo:", tempUri);  // Verifica si la URI es válida
+
+    const data = new FormData();
+    data.append('foliotmp', foliotmp);
+    data.append('esporapp', '1');
+    data.append('archivo_descripcion_recepcion', descripciónArchivoGeneral);
+    data.append('token', token);
+    data.append('idusuario', idUsuario);
+
+    // Imprimir los datos que se van a enviar en el FormData
+    console.log("Datos a enviar con FormData:");
+    console.log('foliotmp:', foliotmp);
+    console.log('esporapp:', '1');
+    console.log('archivo_descripcion_recepcion:', descripciónArchivoGeneral);
+    console.log('token:', token);
+    console.log('idusuario:', idUsuario);
+
+    // Adjuntar el archivo con el tipo MIME correcto
+    data.append('archivo_recepcion', {
+      uri: tempUri,  // Usar la URI temporal copiada
+      name: file.name,
+      type: 'image/jpeg',  // O el tipo adecuado si es otro tipo de archivo
+    });
+
+    // Hacer la solicitud HTTP usando axios
+    const response = await axios.post(
+      'https://sgi.midelab.com/ERP/php/ap_ws_recepcion_upload_archivos_recepcion.php',
+      data,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
+        },
+        timeout: 60000,  // Aumentando el tiempo de espera
+      }
+    );
+
+    const result = response.data;
+    setUploading(false);
+    if (result && result[0].exito === '1') {
+      Alert.alert('¡Importante!', 'El archivo se ha subido correctamente');
+      setFile({ uri: null, type: 'cancelled' });
+    } else {
+      Alert.alert('¡Importante!', 'El archivo no se ha podido subir');
+    }
+  } catch (error) {
+    setUploading(false);
+    console.log('uploadFile error con axios:', error);
+    Alert.alert('¡Error!', 'No se pudo subir el archivo');
+  }
+};
+
+
+  /*FUNCIONA CON IMAGENES VIA WEB
+  const uploadFile = async () => {
     if (!file || !file.uri || file.type === 'cancelled') {
       Alert.alert('¡Importante!', 'Seleccione un archivo');
-      return;
-    } else if (descripciónArchivoGeneral.length < 1) {
-      Alert.alert('¡Importante!', 'El campo de descripción se encuentra vacío');
       return;
     }
   
     try {
       setUploading(true);
   
-      // Crear FormData
-      let data = new FormData();
+      // Crear la URI temporal y confirmar que esté correctamente configurada
+      const tempUri = `${FileSystem.cacheDirectory}${file.name}`;
+      await FileSystem.copyAsync({
+        from: file.uri,
+        to: tempUri,
+      });
+  
+      console.log("URI temporal del archivo:", tempUri);
+  
+      const data = new FormData();
       data.append('foliotmp', foliotmp);
       data.append('esporapp', '1');
       data.append('archivo_recepcion', {
-        uri: Platform.OS === 'android' ? file.uri : file.uri.replace('file://', ''),
-        name: file.name,
-        type: file.mimeType,
-      });
+        uri: 'https://via.placeholder.com/150',  // Usar una imagen pública temporal
+        name: 'imagen_prueba.jpg',
+        type: 'image/jpeg',
+      });      
       data.append('archivo_descripcion_recepcion', descripciónArchivoGeneral);
       data.append('token', token);
       data.append('idusuario', idUsuario);
   
-      // Imprimir los datos para depuración
-      console.log('Datos a enviar:', data);
+      console.log("Datos a enviar con axios:", data);
   
-      // Realizar la solicitud POST
-      const response = await fetch(baseUrl + 'ERP/php/ap_ws_recepcion_upload_archivos_recepcion.php', {
-        method: 'POST',
-        body: data,
-        // No es necesario especificar el Content-Type, fetch lo maneja automáticamente
-      });
+      const response = await axios.post(
+        'https://sgi.midelab.com/ERP/php/ap_ws_recepcion_upload_archivos_recepcion.php',
+        data,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Accept': 'application/json',
+          },
+          timeout: 10000, // Configurar un tiempo de espera
+        }
+      );
   
-      // Verificar la respuesta del servidor
-      if (!response.ok) {
-        throw new Error(`Error en la respuesta: ${response.status}`);
-      }
-  
-      // Parsear la respuesta JSON
-      const result = await response.json();
-  
+      const result = response.data;
       setUploading(false);
-  
-      // Manejar los resultados de la respuesta
-      if (result && result[0].exito === '1' && result[0].error === 0) {
+      if (result && result[0].exito === '1') {
         Alert.alert('¡Importante!', 'El archivo se ha subido correctamente');
         setFile({ uri: null, type: 'cancelled' });
-        setDescripciónArchivoGeneral('');
-        loadFiles(); // Recargar la lista de archivos
       } else {
         Alert.alert('¡Importante!', 'El archivo no se ha podido subir');
       }
-  
     } catch (error) {
       setUploading(false);
-      console.log('uploadFile error:', error);
-      Alert.alert('¡Error!', `No se pudo subir el archivo: ${error.message || error}`);
+      console.log('uploadFile error con axios:', error);
+      Alert.alert('¡Error!', 'No se pudo subir el archivo');
     }
-  };  
-  
+  };
+*/
   /*
   const uploadFileViejo = async () => {
     if (file == null || file == '' || file.uri == null || file.type == 'cancel') {
