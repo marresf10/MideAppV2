@@ -341,14 +341,12 @@ const SubMenu3Screen = ({ navigation, route }) => {
   
       console.log("Resultado del DocumentPicker:", result);
   
-      // Verificar si el archivo fue cancelado
       if (result.canceled) {
         console.log("Selección de archivo cancelada.");
         setFile({ uri: null, type: 'cancelled' });
         return;
       }
   
-      // Verificar si `result.assets` existe y contiene el archivo
       const selectedFile = result.assets ? result.assets[0] : result;
   
       if (selectedFile.uri) {
@@ -396,7 +394,7 @@ const takeAPhoto = async () => {
   const result = await ImagePicker.launchCameraAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.All,
     allowsEditing: false,
-    quality: 1,
+    quality: 0.5,
   });
 
   if (!result.canceled) {
@@ -444,7 +442,7 @@ const pickAnImage = async () => {
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.All,
     allowsEditing: false,
-    quality: 1,
+    quality: 0.5,
   });
 
   if (result.canceled) {
@@ -528,7 +526,7 @@ const pickAnImage = async () => {
     });
 
     const response = await axios.post(
-      'https://sgi.midelab.com/ERP/php/ap_ws_recepcion_upload_archivos_recepcion.php',
+      'https://sgi.midelab.com/ERP/php/app_v2_ws_recepcion_upload_archivos_recepcion.php',
       data,
       {
         headers: {
