@@ -1198,7 +1198,7 @@ const pickAnImage = async () => {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.titleContainer}>
-        <Text style={styles.titleSubModule}>VALE DE RECEPCIÓN</Text>
+        <Text style={styles.titleSubModule}>VALE RECEPCIÓN</Text>
       </View>
       {!isRegistering && (
         <View style={styles.bottomTitleContainer}>
@@ -1233,9 +1233,9 @@ const pickAnImage = async () => {
               <Text>* Datos obligatorios </Text>
             </View>
             <ScrollView keyboardShouldPersistTaps='handled'>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                <AntDesign name='doubleright' size={20} color='#003667' />
-                <Text style={{ color: '#003667', fontWeight: 'bold' }}> DATOS DEL CLIENTE </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, marginTop: 30 }}>
+                <AntDesign name='doubleright' size={14} color='#003667' />
+                <Text style={{ color: '#003667', fontWeight: 'bold' }}> DATOS DEL CLIENTE</Text>
               </View>
 
               <Text>Cliente: * </Text>
@@ -1259,7 +1259,7 @@ const pickAnImage = async () => {
                   autoCorrect: false,
                   autoCapitalize: 'none',
                   style: {
-                    borderRadius: 5,
+                    borderRadius: 15,
                     backgroundColor: '#FFF',
                     color: '#000',
                     paddingLeft: 10,
@@ -1290,7 +1290,7 @@ const pickAnImage = async () => {
                 //  showClear={false}
               />
               <Text style={{ marginTop: 10 }}>Contacto: * </Text>
-              <View style={{ borderWidth: 1, borderColor: 'lightgray', borderRadius: 5, marginBottom: 10 }}>
+              <View style={{ borderWidth: 1, borderColor: 'lightgray', borderRadius: 15, marginBottom: 10 }}>
                 <Picker selectedValue={contacto} onValueChange={(value) => setAContact(value)}>
                   <Picker.Item style={{ fontSize: 14 }} label='Seleccione un contacto' value='Ninguno' />
                   {contactos.map((item) => (
@@ -1299,11 +1299,11 @@ const pickAnImage = async () => {
                 </Picker>
               </View>
               <View style={{ flexDirection: 'row', marginTop: 10, marginBottom: 10 }}>
-                <Text>Correo: </Text>
+                <Text>Correo eléctronico: </Text>
                 <Text style={{ fontWeight: 'bold' }}>{correo}</Text>
               </View>
               <Text style={{ marginTop: 10 }}>Forma recepción del equipo: * </Text>
-              <View style={{ borderWidth: 1, borderColor: 'lightgray', borderRadius: 5, marginBottom: 10 }}>
+              <View style={{ borderWidth: 1, borderColor: 'lightgray', borderRadius: 15, marginBottom: 10 }}>
                 <Picker selectedValue={forma} onValueChange={(value) => setForma(value)}>
                   <Picker.Item style={{ fontSize: 14 }} label='ENTREGA PERSONAL CLIENTE' value='ENTREGA PERSONAL CLIENTE' />
                   <Picker.Item style={{ fontSize: 14 }} label='MENSAJERÍA' value='MENSAJERIA' />
@@ -1370,7 +1370,7 @@ const pickAnImage = async () => {
                   </>
                 ) : (
                   <>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 7 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 30 }}>
                       <AntDesign name='doubleright' size={14} color='#003667' />
                       <Text style={{ color: '#003667', fontWeight: 'bold' }}> RECEPCIÓN</Text>
                     </View>
@@ -1431,7 +1431,7 @@ const pickAnImage = async () => {
                   paddingVertical: 8,
                   borderRadius: 3,
                 }}>
-                <MaterialIcons name='attach-file' size={40} color='white' />
+                <MaterialIcons name='attach-file' size={50} color='white' />
                 <Text style={{ color: 'white' }}> SELECCIONAR ARCHIVO </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -1445,7 +1445,7 @@ const pickAnImage = async () => {
                   paddingVertical: 8,
                   borderRadius: 3,
                 }}>
-                <Entypo name='images' size={40} color='white' />
+                <Entypo name='images' size={50} color='white' />
                 <Text style={{ color: 'white' }}> SELECCIONAR IMAGEN </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -1459,7 +1459,7 @@ const pickAnImage = async () => {
                   paddingVertical: 8,
                   borderRadius: 3,
                 }}>
-                <MaterialCommunityIcons name='camera' size={40} color='white' />
+                <MaterialCommunityIcons name='camera' size={50} color='white' />
                 <Text style={{ color: 'white' }}> TOMAR FOTOGRAFÍA </Text>
               </TouchableOpacity>
               {file.type == 'success' ? (
@@ -2152,7 +2152,7 @@ const styles = StyleSheet.create({
     color: 'black',
     borderWidth: 1,
     borderColor: '#D8D8D8',
-    borderRadius: 5,
+    borderRadius: 15,
     backgroundColor: '#FFF',
     padding: 10,
     width: '100%',
