@@ -18,6 +18,7 @@ import { baseUrl } from '../configuration/database';
 import * as DocumentPicker from 'expo-document-picker';
 import { AntDesign, MaterialIcons, MaterialCommunityIcons, Entypo } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
+import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 
 const ArchivosPorEquipoScreen = ({ route, navigation }) => {
@@ -76,8 +77,8 @@ const ArchivosPorEquipoScreen = ({ route, navigation }) => {
       setFile(result);
     }
   };
-
-  const takeAPhoto = async () => {
+/*
+  const takeAPhotoViejo = async () => {
     // Ask the user for the permission to access the camera
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
@@ -95,6 +96,52 @@ const ArchivosPorEquipoScreen = ({ route, navigation }) => {
     if (!result.cancelled) {
       setFile({ uri: result.uri, type: 'success', mimeType: 'image/jpeg', name: foliotmp + '.jpg' });
     } else if (result.cancelled) {
+      setFile({ uri: null, type: 'cancelled' });
+    }
+  };
+*/
+
+  const takeAPhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('¡Importante!', 'Usted ha rechazado la solicitud de permisos para acceso a la cámara');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: false,
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      const selectedPhoto = result.assets ? result.assets[0] : result;
+      
+      try {
+        const uniqueId = new Date().getTime().toString();
+        const tempUri = `${FileSystem.documentDirectory}${uniqueId}.jpg`;
+
+        await FileSystem.copyAsync({
+          from: selectedPhoto.uri,
+          to: tempUri,
+        });
+
+        setFile({
+          uri: tempUri,
+          type: 'success',
+          mimeType: 'image/jpeg',
+          name: foliotmp + '.jpg',
+        });
+
+        console.log("Foto tomada y URI temporal generada:", tempUri);
+
+      } catch (error) {
+        console.error("Error al copiar la foto:", error);
+        Alert.alert('¡Importante!', 'Hubo un problema al procesar la foto');
+        setFile({ uri: null, type: 'cancelled' });
+      }
+    } else {
       setFile({ uri: null, type: 'cancelled' });
     }
   };
