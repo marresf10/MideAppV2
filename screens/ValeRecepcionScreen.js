@@ -2133,6 +2133,23 @@ const pickAnImage = async () => {
                         {signature ? <Image resizeMode={'contain'} style={{ width: '100%', height: '100%' }} source={{ uri: signature }} /> : null}
                       </View>
                       <View style={{ flexDirection: 'row' }}>
+                      <TouchableOpacity
+                          onPress={() => setIsSavedSign(false)}
+                          style={{
+                            flex: 1,
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            backgroundColor: '#003667',
+                            paddingVertical: 10,
+                            paddingHorizontal: 10,
+                            borderRadius: 3,
+                            marginLeft: 10,
+                          }}>
+                          <Feather name='save' size={20} color='white' />
+                          <FontAwesome5 name='file-signature' size={20} color='white' />
+                          <Text style={{ color: 'white' }}> EDITAR FIRMA </Text>
+                        </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => uploadSure()}
                           style={{
@@ -2148,22 +2165,6 @@ const pickAnImage = async () => {
                           }}>
                           <Feather name='save' size={20} color='white' />
                           <Text style={{ color: 'white' }}> ACEPTAR Y GUARDAR</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => setIsSavedSign(false)}
-                          style={{
-                            flex: 1,
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            backgroundColor: '#003667',
-                            paddingVertical: 10,
-                            paddingHorizontal: 10,
-                            borderRadius: 3,
-                            marginLeft: 10,
-                          }}>
-                          <FontAwesome5 name='file-signature' size={20} color='white' />
-                          <Text style={{ color: 'white' }}> EDITAR FIRMA</Text>
                         </TouchableOpacity>
                       </View>
                     </>
