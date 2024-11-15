@@ -870,19 +870,18 @@ const pickAnImage = async () => {
                   modelo: mod,
                 })
               }>
-              <MaterialIcons name='upload-file' size={24} color='#003667' />
+              <MaterialIcons name='upload-file' size={24} color='#DDD' />
             </TouchableOpacity>
           )}
-
           <TouchableOpacity
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#EEE' }}
             onPress={() =>
-              Alert.alert('Editar recepción de equipo', '¿Deseas editar la recepción del equipo?', [
+              Alert.alert('Editar recepción de equipo', '¿Deseas editar el equipo?', [
                 { text: 'Cancelar' },
                 { text: 'Confirmar', onPress: () => editEquipo(id) },
               ])
             }>
-            <MaterialIcons name='edit' size={22} color='#003667' />
+            <MaterialIcons name='edit' size={22} color='#DDD' />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -917,6 +916,38 @@ const pickAnImage = async () => {
       .then((response) => {
         if (response == null) {
           Alert.alert('¡Importante!', 'Surgió un problema al intentar eliminar el equipo');
+        } else if (response == 1001) {
+          cerrarSesion();
+          return;
+        } else if (response[0].exito == 1) {
+          Alert.alert('¡Importante!', 'Se ha eliminado el equipo correctamente');
+          loadEquipos();
+        } else {
+          Alert.alert('¡Importante!', 'Se ha tenido un problema al intentar eliminar el equipo');
+        }
+      })
+      .catch((error) => {
+        console.log('deleteEquipo (2):');
+        console.error(error);
+      });
+  };
+
+  const editEquipo = async (id) => {
+    let data = new FormData();
+    data.append('token', token);
+    data.append('idusuario', idUsuario);
+    data.append('esporapp', 1);
+    data.append('funcion', 'borrarRecepcion');
+    data.append('foliotmp', foliotmp);
+    data.append('idequipovale', id);
+    await fetch(baseUrl + 'ERP/php/app_ws_recepcion_funciones.php', {
+      method: 'POST',
+      body: data,
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        if (response == null) {
+          Alert.alert('¡Importante!', 'Surgió un problema al intentar editar el equipo');
         } else if (response == 1001) {
           cerrarSesion();
           return;
