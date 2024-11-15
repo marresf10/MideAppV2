@@ -934,36 +934,67 @@ const pickAnImage = async () => {
 
   const editEquipo = async (id) => {
     let data = new FormData();
-    data.append('token', token);
-    data.append('idusuario', idUsuario);
-    data.append('esporapp', 1);
-    data.append('funcion', 'editarRecepcion');
-    data.append('foliotmp', foliotmp);
+    //data.append('token', token);
+    //data.append('idusuario', idUsuario);
+    //data.append('esporapp', 1);
+    data.append('funcion', 'obtenerDatosEquipoEditar');  // Función correcta para obtener datos
     data.append('idequipovale', id);
-    await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
-      method: 'POST',
-      body: data,
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response == null) {
-          Alert.alert('¡Importante!', 'Surgió un problema al intentar editar el equipo');
-        } else if (response == 1001) {
-          cerrarSesion();
-          return;
-        } else if (response[0].exito == 1) {
-          Alert.alert('¡Importante!', 'Se ha eliminado el equipo correctamente');
-          loadEquipos();
-        } else {
-          Alert.alert('¡Importante!', 'Se ha tenido un problema al intentar eliminar el equipo');
-        }
-      })
-      .catch((error) => {
-        console.log('deleteEquipo (2):');
-        console.error(error);
+  
+    try {
+      const response = await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
+        method: 'POST',
+        body: data,
       });
+  
+      const result = await response.json(); // Parseamos directamente a JSON
+  
+      if (result == null) {
+        console.log('Respuesta vacía del servidor');
+        Alert.alert('¡Importante!', 'Surgió un problema al intentar obtener los datos del equipo');
+      } else if (result == 1001) {
+        cerrarSesion();
+      } else if (Array.isArray(result) && result.length > 0) {
+        // Aquí asumimos que la respuesta es un arreglo con los datos del equipo
+        const equipoData = result[0]; // Accedemos a los primeros datos si es un arreglo
+        console.log('Datos del equipo:', equipoData);
+      } else {
+        // Si no es un arreglo o hay algún otro problema, mostramos un mensaje de error
+        Alert.alert('¡Importante!', 'Surgió un problema al obtener los datos del equipo');
+      }
+    } catch (error) {
+      console.log('Error al obtener datos del equipo:', error);
+    }
   };
 
+  const editEquipoSirve = async (id) => {
+    let data = new FormData();
+    //data.append('token', token);
+    //data.append('idusuario', idUsuario);
+    //data.append('esporapp', 1);
+    data.append('funcion', 'obtenerDatosEquipoEditar');
+    data.append('idequipovale', id);
+  
+    try {
+      const response = await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
+        method: 'POST',
+        body: data,
+      });
+  
+      const responseText = await response.text();
+      console.log('Respuesta cruda del servidor:', responseText);
+  
+      if (responseText.trim() === '') {
+        console.log('Respuesta vacía');
+        return;
+      }
+  
+      const result = JSON.parse(responseText);  // Ahora la parseamos
+      console.log('Datos obtenidos del equipo:', result);
+    } catch (error) {
+      console.log('Error al obtener datos del equipo:', error);
+    }
+  };
+  
   const onRefreshh = React.useCallback(async () => {
     setIsRefreshingg(true);
     await loadEquipos();
@@ -2102,6 +2133,23 @@ const pickAnImage = async () => {
                         {signature ? <Image resizeMode={'contain'} style={{ width: '100%', height: '100%' }} source={{ uri: signature }} /> : null}
                       </View>
                       <View style={{ flexDirection: 'row' }}>
+                      <TouchableOpacity
+                          onPress={() => setIsSavedSign(false)}
+                          style={{
+                            flex: 1,
+                            flexDirection: 'row',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            backgroundColor: '#003667',
+                            paddingVertical: 10,
+                            paddingHorizontal: 10,
+                            borderRadius: 3,
+                            marginLeft: 10,
+                          }}>
+                          <Feather name='save' size={20} color='white' />
+                          <FontAwesome5 name='file-signature' size={20} color='white' />
+                          <Text style={{ color: 'white' }}> EDITAR FIRMA </Text>
+                        </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => uploadSure()}
                           style={{
@@ -2117,22 +2165,6 @@ const pickAnImage = async () => {
                           }}>
                           <Feather name='save' size={20} color='white' />
                           <Text style={{ color: 'white' }}> ACEPTAR Y GUARDAR</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => setIsSavedSign(false)}
-                          style={{
-                            flex: 1,
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            backgroundColor: '#003667',
-                            paddingVertical: 10,
-                            paddingHorizontal: 10,
-                            borderRadius: 3,
-                            marginLeft: 10,
-                          }}>
-                          <FontAwesome5 name='file-signature' size={20} color='white' />
-                          <Text style={{ color: 'white' }}> EDITAR FIRMA</Text>
                         </TouchableOpacity>
                       </View>
                     </>
