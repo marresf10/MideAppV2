@@ -307,7 +307,7 @@ const SubMenu3Screen = ({ navigation, route }) => {
     data.append('foliotmp', foliotmp);
     data.append('token', token);
     data.append('idusuario', idUsuario);
-    await fetch(baseUrl + 'ERP/php/app_ws_recepcion_funciones.php', {
+    await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
       method: 'POST',
       body: data,
     })
@@ -560,7 +560,7 @@ const pickAnImage = async () => {
     data.append('funcion', 'borrarArchivoRecepcion');
     data.append('foliotmp', foliotmp);
     data.append('idvalearchivo', idvale);
-    await fetch(baseUrl + 'ERP/php/app_ws_recepcion_funciones.php', {
+    await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
       method: 'POST',
       body: data,
     })
@@ -720,7 +720,7 @@ const pickAnImage = async () => {
       data.append('token', tok);
       data.append('idusuario', id);
     }
-    await fetch(baseUrl + 'ERP/php/app_ws_recepcion_funciones.php', {
+    await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
       method: 'POST',
       body: data,
     })
@@ -908,7 +908,7 @@ const pickAnImage = async () => {
     data.append('funcion', 'borrarRecepcion');
     data.append('foliotmp', foliotmp);
     data.append('idequipovale', id);
-    await fetch(baseUrl + 'ERP/php/app_ws_recepcion_funciones.php', {
+    await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
       method: 'POST',
       body: data,
     })
@@ -937,10 +937,10 @@ const pickAnImage = async () => {
     data.append('token', token);
     data.append('idusuario', idUsuario);
     data.append('esporapp', 1);
-    data.append('funcion', 'borrarRecepcion');
+    data.append('funcion', 'editarRecepcion');
     data.append('foliotmp', foliotmp);
     data.append('idequipovale', id);
-    await fetch(baseUrl + 'ERP/php/app_ws_recepcion_funciones.php', {
+    await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
       method: 'POST',
       body: data,
     })
