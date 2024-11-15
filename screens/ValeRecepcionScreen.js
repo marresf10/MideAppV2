@@ -878,7 +878,7 @@ const pickAnImage = async () => {
             onPress={() =>
               Alert.alert('Editar recepción de equipo', '¿Deseas editar el equipo?', [
                 { text: 'Cancelar' },
-                { text: 'Confirmar', onPress: () => editEquipo(id) },
+                { text: 'Confirmar', onPress: () => editEquipoDatos(id) },
               ])
             }>
             <MaterialIcons name='edit' size={22} color='#DDD' />
@@ -932,7 +932,38 @@ const pickAnImage = async () => {
       });
   };
 
-  const editEquipo = async (id) => {
+  const editEquipoDatos = async (id) => {
+    let data = new FormData();
+    data.append('funcion', 'obtenerDatosEquipoEditar');
+    data.append('idequipovale', id);
+  
+    try {
+      const response = await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
+        method: 'POST',
+        body: data,
+      });
+  
+      const result = await response.json();
+  
+      if (result && Array.isArray(result) && result.length > 0) {
+        const equipoData = result[0];
+  
+        navigation.navigate('Editar Equipo', {
+          descripcion: equipoData.descripcion,
+          marca: equipoData.marca,
+          modelo: equipoData.modelo,
+          idequipovale: id,
+        });
+      } else {
+        Alert.alert('Error', 'No se pudieron obtener los datos del equipo.');
+      }
+    } catch (error) {
+      console.error('Error al obtener datos del equipo:', error);
+      Alert.alert('Error', 'Hubo un problema al conectarse con el servidor.');
+    }
+  };
+/*
+  const editEquipoPruebas = async (id) => {
     let data = new FormData();
     //data.append('token', token);
     //data.append('idusuario', idUsuario);
@@ -965,36 +996,7 @@ const pickAnImage = async () => {
       console.log('Error al obtener datos del equipo:', error);
     }
   };
-
-  const editEquipoSirve = async (id) => {
-    let data = new FormData();
-    //data.append('token', token);
-    //data.append('idusuario', idUsuario);
-    //data.append('esporapp', 1);
-    data.append('funcion', 'obtenerDatosEquipoEditar');
-    data.append('idequipovale', id);
-  
-    try {
-      const response = await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
-        method: 'POST',
-        body: data,
-      });
-  
-      const responseText = await response.text();
-      console.log('Respuesta cruda del servidor:', responseText);
-  
-      if (responseText.trim() === '') {
-        console.log('Respuesta vacía');
-        return;
-      }
-  
-      const result = JSON.parse(responseText);  // Ahora la parseamos
-      console.log('Datos obtenidos del equipo:', result);
-    } catch (error) {
-      console.log('Error al obtener datos del equipo:', error);
-    }
-  };
-  
+*/
   const onRefreshh = React.useCallback(async () => {
     setIsRefreshingg(true);
     await loadEquipos();
@@ -1023,7 +1025,7 @@ const pickAnImage = async () => {
     data.append('token', token);
     data.append('idusuario', idUsuario);
     data.append('esporapp', 1);
-    await fetch(baseUrl + 'ERP/php/app_ws_get_accesorios_equipos.php', {
+    await fetch(baseUrl + 'ERP/php/app_v2_ws_get_accesorios_equipos.php', {
       method: 'POST',
       body: data,
     })

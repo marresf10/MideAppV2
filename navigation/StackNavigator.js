@@ -12,6 +12,7 @@ import * as SecureStore from 'expo-secure-store';
 import LoginScreen from '../screens/LoginScreen';
 import MainScreen from '../screens/MainScreen';
 import PantallaInicioDatos from '../screens/PantallaInicioDatos';
+import EditEquipoScreen from '../screens/EditEquipoScreen';
 
 //Screens del modulo de almacen
 import AlmacenScreen from '../screens/AlmacenScreen';
@@ -173,6 +174,38 @@ const StackNavigator = () => {
                   navigation.popToTop('Inicio');
                 }}>
                 <Text style={{ color: '#FFF', marginRight: 20, fontSize: 15 }}>Cerrar sesión</Text>
+              </TouchableOpacity>
+            ),
+          })}
+        />
+        <Stack.Screen
+          name="Editar Equipo"
+          component={EditEquipoScreen}
+          options={({ navigation }) => ({
+            title: 'Editar Equipo',
+            gesturesEnabled: true, // Puedes cambiarlo si deseas deshabilitar gestos
+            headerStyle: {
+              backgroundColor: '#FF5733', // Cambia el color según tu diseño
+            },
+            headerTitleStyle: {
+              color: '#FFF',
+              fontWeight: 'bold',
+            },
+            headerTintColor: 'white',
+            headerRight: () => (
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate('Inicio'); // Cambia al lugar adecuado al cerrar sesión o cancelar
+                }}>
+                <Text style={{ color: '#FFF', marginRight: 20, fontSize: 15 }}>Cancelar</Text>
+              </TouchableOpacity>
+            ),
+            headerLeft: () => (
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.goBack(); // Navega hacia atrás
+                }}>
+                <Text style={{ color: '#FFF', marginLeft: 20, fontSize: 15 }}>Volver</Text>
               </TouchableOpacity>
             ),
           })}
