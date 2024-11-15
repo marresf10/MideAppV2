@@ -875,6 +875,17 @@ const pickAnImage = async () => {
           )}
 
           <TouchableOpacity
+            style={{ flex: 1, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#EEE' }}
+            onPress={() =>
+              Alert.alert('Editar recepción de equipo', '¿Deseas editar la recepción del equipo?', [
+                { text: 'Cancelar' },
+                { text: 'Confirmar', onPress: () => editEquipo(id) },
+              ])
+            }>
+            <MaterialIcons name='edit' size={22} color='#003667' />
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
             onPress={() =>
               Alert.alert('Eliminar recepción de equipo', '¿Esta seguro de eliminar la recepción del equipo?', [
