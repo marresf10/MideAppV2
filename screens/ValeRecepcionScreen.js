@@ -952,6 +952,11 @@ const pickAnImage = async () => {
           descripcion: equipoData.descripcion,
           marca: equipoData.marca,
           modelo: equipoData.modelo,
+          intervalo: equipoData.intervalo,
+          noserie: equipoData.noserie,
+          identificador: equipoData.identificador,
+          notas: equipoData.notas,
+          observaciones: equipoData.observaciones,
           idequipovale: id,
         });
       } else {

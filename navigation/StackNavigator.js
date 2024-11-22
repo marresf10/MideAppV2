@@ -183,9 +183,9 @@ const StackNavigator = () => {
           component={EditEquipoScreen}
           options={({ navigation }) => ({
             title: 'Editar Equipo',
-            gesturesEnabled: true, // Puedes cambiarlo si deseas deshabilitar gestos
+            gesturesEnabled: true,
             headerStyle: {
-              backgroundColor: '#FF5733', // Cambia el color según tu diseño
+              backgroundColor: '#99c221',
             },
             headerTitleStyle: {
               color: '#FFF',
@@ -195,7 +195,7 @@ const StackNavigator = () => {
             headerRight: () => (
               <TouchableOpacity
                 onPress={() => {
-                  navigation.navigate('Inicio'); // Cambia al lugar adecuado al cerrar sesión o cancelar
+                  navigation.navigate('Inicio');
                 }}>
                 <Text style={{ color: '#FFF', marginRight: 20, fontSize: 15 }}>Cancelar</Text>
               </TouchableOpacity>

@@ -10,26 +10,37 @@ import {
 } from 'react-native';
 
 const EditEquipoScreen = ({ route, navigation }) => {
-  const { descripcion, marca, modelo, idequipovale } = route.params;
+  const { descripcion, marca, modelo, intervalo, noserie, identificador, notas, observaciones, idequipovale } = route.params;
 
   const [newDescripcion, setNewDescripcion] = useState(descripcion);
   const [newMarca, setNewMarca] = useState(marca);
   const [newModelo, setNewModelo] = useState(modelo);
+  const [newIntervalo, setNewIntervalo] = useState(intervalo);
+  const [newNoserie, setNewNoserie] = useState(noserie);
+  const [newIdentificador, setNewIdentificador] = useState(identificador);
+  const [newNotas, setNewNotas] = useState(notas);
+  const [newObservaciones, setNewObservaciones] = useState(observaciones);
+  const [newIdEquipoVale, setNewIdEquipoVale] = useState(idequipovale);
 
   const saveChanges = async () => {
-    // Valida los campos antes de enviar
-    if (!newDescripcion || !newMarca || !newModelo) {
+    if (!newDescripcion || !newMarca || !newModelo || !newIntervalo || !newNoserie || !newIdentificador 
+      || !newNotas || !newObservaciones || !newIdEquipoVale ) {
       Alert.alert('¡Importante!', 'Por favor, llena todos los campos.');
       return;
     }
 
-    // Prepara los datos para enviarlos al servidor
     let data = new FormData();
     data.append('funcion', 'guardarCambiosEquipo');
     data.append('idequipovale', idequipovale);
     data.append('descripcion', newDescripcion);
     data.append('marca', newMarca);
     data.append('modelo', newModelo);
+    data.append('intervalo', newIntervalo);
+    data.append('noserie', newNoserie);
+    data.append('identificador', newIdentificador);
+    data.append('notas', newNotas);
+    data.append('observaciones', newObservaciones);
+    data.append('idequipovale', newIdEquipoVale);
 
     try {
       const response = await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
@@ -76,6 +87,47 @@ const EditEquipoScreen = ({ route, navigation }) => {
         onChangeText={setNewModelo}
         placeholder="Modelo"
       />
+
+      <Text style={styles.label}>Intervalo</Text>
+      <TextInput
+        style={styles.input}
+        value={newIntervalo}
+        onChangeText={setNewIntervalo}
+        placeholder="Intervalo"
+      />
+
+      <Text style={styles.label}>No. Serie</Text>
+      <TextInput
+        style={styles.input}
+        value={newNoserie}
+        onChangeText={setNewNoserie}
+        placeholder="No. Serie"
+      />
+
+      <Text style={styles.label}>Identificador</Text>
+      <TextInput
+        style={styles.input}
+        value={newIdentificador}
+        onChangeText={setNewIdentificador}
+        placeholder="Identificador"
+      />
+
+      <Text style={styles.label}>Notas</Text>
+      <TextInput
+        style={styles.input}
+        value={newNotas}
+        onChangeText={setNewNotas}
+        placeholder="Notas"
+      />
+
+      <Text style={styles.label}>Observaciones</Text>
+      <TextInput
+        style={styles.input}
+        value={newObservaciones}
+        onChangeText={setNewObservaciones}
+        placeholder="Observaciobes"
+      />
+
 
       <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
         <Text style={styles.saveButtonText}>Guardar Cambios</Text>
