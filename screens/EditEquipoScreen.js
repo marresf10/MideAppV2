@@ -36,6 +36,7 @@ const EditEquipoScreen = ({ route, navigation }) => {
   const [newNotas, setNewNotas] = useState(notas);
   const [newObservaciones, setNewObservaciones] = useState(observaciones);
   const [newIdEquipoVale, setNewIdEquipoVale] = useState(idequipovale);
+  const [newOtrosAccesorios, setNewOtrosAccesorios] = useState('');
   const [checkBoxes, setCheckBoxes] = useState([]);
   const [arrCheckBox, setArrCheckBox] = useState({});
 
@@ -82,7 +83,7 @@ const EditEquipoScreen = ({ route, navigation }) => {
   
 
   // Guardar cambios
-  const saveChanges = async () => {
+  const saveChangesViejo = async () => {
     if (
       !newDescripcion ||
       !newMarca ||
@@ -110,6 +111,8 @@ const EditEquipoScreen = ({ route, navigation }) => {
     data.append('notas', newNotas);
     data.append('observaciones', newObservaciones);
     data.append('accesorios', JSON.stringify(arrCheckBox));
+    data.append('txtOtrosAccesorios', newOtrosAccesorios || '');
+
     console.log("datos enviados: "+data)
 
     try {
@@ -130,6 +133,73 @@ const EditEquipoScreen = ({ route, navigation }) => {
       Alert.alert('Error', 'Hubo un problema con la conexión al servidor.');
     }
   };
+
+  const saveChanges = async () => {
+    if (
+      !newDescripcion ||
+      !newMarca ||
+      !newModelo ||
+      !newIntervalo ||
+      !newNoserie ||
+      !newIdentificador ||
+      !newNotas ||
+      !newObservaciones ||
+      !newIdEquipoVale
+    ) {
+      Alert.alert('¡Importante!', 'Por favor, llena todos los campos.');
+      return;
+    }
+  
+    // Asegurarnos de enviar el formato correcto para accesorios
+    const formattedAccessories = { ...arrCheckBox }; // Mantiene el formato {chk_accesorio_X: boolean}
+    
+    let data = new FormData();
+    data.append('funcion', 'guardarCambiosEquipo');
+    data.append('token', token);
+    data.append('idusuario', idUsuario);
+    data.append('esporapp', 1);
+    data.append('idequipovale', newIdEquipoVale);
+    data.append('descripcion', newDescripcion);
+    data.append('marca', newMarca);
+    data.append('modelo', newModelo);
+    data.append('intervalo', newIntervalo);
+    data.append('noserie', newNoserie);
+    data.append('identificador', newIdentificador);
+    data.append('observaciones', newObservaciones);
+    data.append('notas', newNotas);
+    data.append('accesorios', JSON.stringify(formattedAccessories)); // Enviar como JSON
+    
+    console.log('Datos enviados al servidor desde EDITAR:');
+    for (let pair of data.entries()) {
+      console.log(`${pair[0]}: ${pair[1]}`);
+    }
+
+    await fetch(baseUrl + 'ERP/php/app_v2_editar_equipo_vale.php', {
+      method: 'POST',
+      body: data,
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        // Agregar console.log para la respuesta del servidor
+      console.log('Respuesta del servidor:', response);
+      
+        if (response == null) {
+          Alert.alert('¡Importante!', 'Se ha tenido un problema al intentar editar el equipo', [{ text: 'Intentar despues' }]);
+          //setIsRegistering(false);
+          //loadEquipos();
+        } else if (response[0].exito == 1) {
+          Alert.alert('¡Registro exitoso!', 'Se ha editado el equipo correctamente');
+          //setIsRegistering(false);
+          //loadEquipos();
+        } else {
+          Alert.alert('¡Importante!', 'Se ha tenido un problema al intentar editar el equipo', [{ text: 'Intentar despues' }]);
+        }
+      })
+      .catch((error) => {
+        console.log('editarEquipo (2):');
+        console.error(error);
+      });
+  };  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -199,23 +269,37 @@ const EditEquipoScreen = ({ route, navigation }) => {
 
       <Text style={styles.label}>Accesorios</Text>
       {checkBoxes.length > 0 ? (
-      checkBoxes.map((item, index) => (
-        <View key={index} style={styles.checkboxContainer}>
-          <BouncyCheckbox
-            fillColor="#003667"
-            isChecked={arrCheckBox['chk_accesorio_' + item.idaccesorio]}
-            onPress={(val) =>
-              setArrCheckBox({ ...arrCheckBox, ['chk_accesorio_' + item.idaccesorio]: val })
-            }
-          />
-          <Text>{item.accesorio}</Text>
-        </View>
-      ))
+      checkBoxes.map((item, index) => {
+        console.log("Accesorio actual: ", item.accesorio);  // Ver el accesorio en cada iteración
+        console.log("Estado de la casilla (isChecked): ", arrCheckBox['chk_accesorio_' + item.idaccesorio]);  // Ver si está marcado
+
+        return (
+          <View key={index} style={styles.checkboxContainer}>
+            <BouncyCheckbox
+              fillColor="#003667"
+              isChecked={arrCheckBox['chk_accesorio_' + item.idaccesorio]}
+              onPress={(val) =>
+                setArrCheckBox({ ...arrCheckBox, ['chk_accesorio_' + item.idaccesorio]: val })
+              }
+            />
+            <Text>{item.accesorio}</Text>
+          </View>
+        );
+      })
     ) : (
       <Text style={{ color: 'red', textAlign: 'center' }}>
         No hay accesorios disponibles.
       </Text>
     )}
+
+    <Text style={styles.label}>Otros Accesorios</Text>
+    <TextInput
+      style={styles.input}
+      value={newOtrosAccesorios}
+      onChangeText={setNewOtrosAccesorios}
+      placeholder="Ingresa otros accesorios"
+    />
+
 
       <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
         <Text style={styles.saveButtonText}>Guardar Cambios</Text>

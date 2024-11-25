@@ -1024,7 +1024,7 @@ const pickAnImage = async () => {
       Alert.alert('Error', 'Hubo un problema al conectarse con el servidor.');
     }
   }; 
-  
+
 /*
   const editEquipoPruebas = async (id) => {
     let data = new FormData();
@@ -1143,12 +1143,20 @@ const pickAnImage = async () => {
       data.append('notas', notas);
       data.append('accesorios', JSON.stringify(arrCheckBox));
       data.append('txtOtrosAccesorios', otrosAccesorios);
+      // Registrar los datos que se están enviando
+      console.log('Datos enviados al servidor:');
+      for (let pair of data.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
       await fetch(baseUrl + 'ERP/php/app_ws_guardar_equipo_vale.php', {
         method: 'POST',
         body: data,
       })
         .then((res) => res.json())
         .then((response) => {
+          // Agregar console.log para la respuesta del servidor
+        console.log('Respuesta del servidor:', response);
+        
           if (response == null) {
             Alert.alert('¡Importante!', 'Se ha tenido un problema al intentar registrar el equipo', [{ text: 'Intentar despues' }]);
             setIsRegistering(false);
