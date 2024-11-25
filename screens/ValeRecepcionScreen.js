@@ -932,46 +932,12 @@ const pickAnImage = async () => {
       });
   };
 
-  const editEquipoDatosViejo = async (id) => {
-    let data = new FormData();
-    data.append('funcion', 'obtenerDatosEquipoEditar');
-    data.append('idequipovale', id);
-  
-    try {
-      const response = await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
-        method: 'POST',
-        body: data,
-      });
-  
-      const result = await response.json();
-  
-      if (result && Array.isArray(result) && result.length > 0) {
-        const equipoData = result[0];
-  
-        navigation.navigate('Editar Equipo', {
-          descripcion: equipoData.descripcion,
-          marca: equipoData.marca,
-          modelo: equipoData.modelo,
-          intervalo: equipoData.intervalo,
-          noserie: equipoData.noserie,
-          identificador: equipoData.identificador,
-          notas: equipoData.notas,
-          observaciones: equipoData.observaciones,
-          idequipovale: id,
-        });
-      } else {
-        Alert.alert('Error', 'No se pudieron obtener los datos del equipo.');
-      }
-    } catch (error) {
-      console.error('Error al obtener datos del equipo:', error);
-      Alert.alert('Error', 'Hubo un problema al conectarse con el servidor.');
-    }
-  };
 
   const editEquipoDatos = async (id) => {
     let data = new FormData();
     data.append('funcion', 'obtenerDatosEquipoEditar');
     data.append('idequipovale', id);
+    console.log("ID DE EQUIPO "+ id)
   
     try {
       const response = await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
@@ -981,12 +947,12 @@ const pickAnImage = async () => {
   
       // Verifica que el estado sea correcto y que la respuesta no esté vacía
       if (!response.ok) {
-        console.error('Error en la respuesta del servidor:', response.status, response.statusText);
+        //console.error('Error en la respuesta del servidor:', response.status, response.statusText);
         throw new Error('Error al conectar con el servidor');
       }
   
       const textResponse = await response.text();
-      console.log('Respuesta del servidor:', textResponse);
+      //console.log('Respuesta del servidor:', textResponse);
   
       let result;
       try {

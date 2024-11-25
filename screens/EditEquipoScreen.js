@@ -56,7 +56,7 @@ const EditEquipoScreen = ({ route, navigation }) => {
   
         const result = await response.json();
   
-        console.log("ESTE ES EL LOADCHECKBOX: ", result);  // Ver los accesorios que has recibido del servidor
+        //console.log("ESTE ES EL LOADCHECKBOX: ", result);  // Ver los accesorios que has recibido del servidor
   
         if (result && Array.isArray(result) && result.length > 0) {
           let arre = {};
@@ -67,7 +67,7 @@ const EditEquipoScreen = ({ route, navigation }) => {
           setCheckBoxes(result);
   
           // Verificar el estado de arrCheckBox después de actualizarlo
-          console.log("arrCheckBox después de actualizarlo: ", arre);
+          //console.log("arrCheckBox después de actualizarlo: ", arre);
         } else {
           Alert.alert('¡Importante!', 'No se encontraron accesorios disponibles.');
           setCheckBoxes([]);
@@ -83,57 +83,6 @@ const EditEquipoScreen = ({ route, navigation }) => {
   
 
   // Guardar cambios
-  const saveChangesViejo = async () => {
-    if (
-      !newDescripcion ||
-      !newMarca ||
-      !newModelo ||
-      !newIntervalo ||
-      !newNoserie ||
-      !newIdentificador ||
-      !newNotas ||
-      !newObservaciones ||
-      !newIdEquipoVale
-    ) {
-      Alert.alert('¡Importante!', 'Por favor, llena todos los campos.');
-      return;
-    }
-
-    let data = new FormData();
-    data.append('funcion', 'guardarCambiosEquipo');
-    data.append('idequipovale', idequipovale);
-    data.append('descripcion', newDescripcion);
-    data.append('marca', newMarca);
-    data.append('modelo', newModelo);
-    data.append('intervalo', newIntervalo);
-    data.append('noserie', newNoserie);
-    data.append('identificador', newIdentificador);
-    data.append('notas', newNotas);
-    data.append('observaciones', newObservaciones);
-    data.append('accesorios', JSON.stringify(arrCheckBox));
-    data.append('txtOtrosAccesorios', newOtrosAccesorios || '');
-
-    console.log("datos enviados: "+data)
-
-    try {
-      const response = await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
-        method: 'POST',
-        body: data,
-      });
-      const result = await response.json();
-
-      if (result && result.success) {
-        Alert.alert('¡Éxito!', 'Los cambios se han guardado correctamente.');
-        navigation.goBack();
-      } else {
-        Alert.alert('Error', 'Hubo un problema al guardar los cambios.');
-      }
-    } catch (error) {
-      console.error('Error al guardar los cambios:', error);
-      Alert.alert('Error', 'Hubo un problema con la conexión al servidor.');
-    }
-  };
-
   const saveChanges = async () => {
     if (
       !newDescripcion ||
@@ -185,12 +134,9 @@ const EditEquipoScreen = ({ route, navigation }) => {
       
         if (response == null) {
           Alert.alert('¡Importante!', 'Se ha tenido un problema al intentar editar el equipo', [{ text: 'Intentar despues' }]);
-          //setIsRegistering(false);
-          //loadEquipos();
         } else if (response[0].exito == 1) {
           Alert.alert('¡Registro exitoso!', 'Se ha editado el equipo correctamente');
-          //setIsRegistering(false);
-          //loadEquipos();
+          navigation.goBack()
         } else {
           Alert.alert('¡Importante!', 'Se ha tenido un problema al intentar editar el equipo', [{ text: 'Intentar despues' }]);
         }
