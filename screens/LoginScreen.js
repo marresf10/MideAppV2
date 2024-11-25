@@ -90,7 +90,8 @@ const LoginScreen = (props) => {
       const data = new FormData();
       data.append('email', email);
       data.append('password', password);
-      data.append('deviceId', deviceId);
+      //data.append('deviceId', deviceId);
+      data.append('deviceId', "samsung-SM-P610-TP1A.220624.014.P610XXS5FXE4");
       data.append('geo_latitud', location.coords.latitude);
       data.append('geo_longitud', location.coords.longitude);
 

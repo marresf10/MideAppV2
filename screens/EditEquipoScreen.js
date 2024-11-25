@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -8,9 +8,24 @@ import {
   Alert,
   View,
 } from 'react-native';
+import BouncyCheckbox from 'react-native-bouncy-checkbox';
+import { baseUrl } from '../configuration/database';
 
 const EditEquipoScreen = ({ route, navigation }) => {
-  const { descripcion, marca, modelo, intervalo, noserie, identificador, notas, observaciones, idequipovale } = route.params;
+  const {
+    descripcion,
+    marca,
+    modelo,
+    intervalo,
+    noserie,
+    identificador,
+    notas,
+    observaciones,
+    idequipovale,
+    accesorios = [],
+    token,
+    idUsuario
+  } = route.params;
 
   const [newDescripcion, setNewDescripcion] = useState(descripcion);
   const [newMarca, setNewMarca] = useState(marca);
@@ -21,10 +36,64 @@ const EditEquipoScreen = ({ route, navigation }) => {
   const [newNotas, setNewNotas] = useState(notas);
   const [newObservaciones, setNewObservaciones] = useState(observaciones);
   const [newIdEquipoVale, setNewIdEquipoVale] = useState(idequipovale);
+  const [checkBoxes, setCheckBoxes] = useState([]);
+  const [arrCheckBox, setArrCheckBox] = useState({});
 
+  // Cargar accesorios existentes
+  useEffect(() => {
+    const loadCheckBoxes = async () => {
+      let data = new FormData();
+      data.append('token', token);
+      data.append('idusuario', idUsuario);
+      data.append('esporapp', 1);
+  
+      try {
+        const response = await fetch(baseUrl + 'ERP/php/app_v2_ws_get_accesorios_equipos.php', {
+          method: 'POST',
+          body: data,
+        });
+  
+        const result = await response.json();
+  
+        console.log("ESTE ES EL LOADCHECKBOX: ", result);  // Ver los accesorios que has recibido del servidor
+  
+        if (result && Array.isArray(result) && result.length > 0) {
+          let arre = {};
+          result.forEach((item) => {
+            arre['chk_accesorio_' + item.idaccesorio] = accesorios.includes(item.idaccesorio.toString());  // Asegurarse de comparar con tipo correcto
+          });
+          setArrCheckBox(arre);
+          setCheckBoxes(result);
+  
+          // Verificar el estado de arrCheckBox después de actualizarlo
+          console.log("arrCheckBox después de actualizarlo: ", arre);
+        } else {
+          Alert.alert('¡Importante!', 'No se encontraron accesorios disponibles.');
+          setCheckBoxes([]);
+        }
+      } catch (error) {
+        console.error('Error al cargar accesorios:', error);
+        Alert.alert('Error', 'Hubo un problema al cargar los accesorios.');
+      }
+    };
+  
+    loadCheckBoxes();
+  }, [accesorios]);
+  
+
+  // Guardar cambios
   const saveChanges = async () => {
-    if (!newDescripcion || !newMarca || !newModelo || !newIntervalo || !newNoserie || !newIdentificador 
-      || !newNotas || !newObservaciones || !newIdEquipoVale ) {
+    if (
+      !newDescripcion ||
+      !newMarca ||
+      !newModelo ||
+      !newIntervalo ||
+      !newNoserie ||
+      !newIdentificador ||
+      !newNotas ||
+      !newObservaciones ||
+      !newIdEquipoVale
+    ) {
       Alert.alert('¡Importante!', 'Por favor, llena todos los campos.');
       return;
     }
@@ -40,14 +109,14 @@ const EditEquipoScreen = ({ route, navigation }) => {
     data.append('identificador', newIdentificador);
     data.append('notas', newNotas);
     data.append('observaciones', newObservaciones);
-    data.append('idequipovale', newIdEquipoVale);
+    data.append('accesorios', JSON.stringify(arrCheckBox));
+    console.log("datos enviados: "+data)
 
     try {
       const response = await fetch(baseUrl + 'ERP/php/app_v2_ws_recepcion_funciones.php', {
         method: 'POST',
         body: data,
       });
-
       const result = await response.json();
 
       if (result && result.success) {
@@ -125,9 +194,28 @@ const EditEquipoScreen = ({ route, navigation }) => {
         style={styles.input}
         value={newObservaciones}
         onChangeText={setNewObservaciones}
-        placeholder="Observaciobes"
+        placeholder="Observaciones"
       />
 
+      <Text style={styles.label}>Accesorios</Text>
+      {checkBoxes.length > 0 ? (
+      checkBoxes.map((item, index) => (
+        <View key={index} style={styles.checkboxContainer}>
+          <BouncyCheckbox
+            fillColor="#003667"
+            isChecked={arrCheckBox['chk_accesorio_' + item.idaccesorio]}
+            onPress={(val) =>
+              setArrCheckBox({ ...arrCheckBox, ['chk_accesorio_' + item.idaccesorio]: val })
+            }
+          />
+          <Text>{item.accesorio}</Text>
+        </View>
+      ))
+    ) : (
+      <Text style={{ color: 'red', textAlign: 'center' }}>
+        No hay accesorios disponibles.
+      </Text>
+    )}
 
       <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
         <Text style={styles.saveButtonText}>Guardar Cambios</Text>
@@ -154,6 +242,11 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     fontSize: 16,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   saveButton: {
     backgroundColor: '#457B9D',
