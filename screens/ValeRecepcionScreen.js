@@ -1864,8 +1864,7 @@ const pickAnImage = async () => {
                     padding: 5,
                     marginBottom: 5,
                   }}>
-                  <Feather name='arrow-left-circle' size={20} color='white' />
-                  <Text style={{ color: 'white' }}> Ver vale</Text>
+                  <Text style={{ color: 'white' }}> Visualizar Vale  </Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -2143,7 +2142,7 @@ const pickAnImage = async () => {
                       borderRadius: 3,
                     }}>
                     <FontAwesome5 name='file-signature' size={20} color='white' />
-                    <Text style={{ color: 'white' }}> CONFIRMAR Y SUBIR</Text>
+                    <Text style={{ color: 'white' }}> CONFIRMAR Y SUBIR   </Text>
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
@@ -2158,7 +2157,7 @@ const pickAnImage = async () => {
                       borderRadius: 3,
                     }}>
                     <FontAwesome5 name='file-signature' size={20} color='white' />
-                    <Text style={{ color: 'white' }}> CONFIRMAR Y FIRMAR</Text>
+                    <Text style={{ color: 'white' }}> CONFIRMAR Y FIRMAR   </Text>
                   </TouchableOpacity>
                 )}
               </ScrollView>
@@ -2203,7 +2202,7 @@ const pickAnImage = async () => {
                             marginRight: 10,
                           }}>
                           <Feather name='save' size={20} color='white' />
-                          <Text style={{ color: 'white' }}> ACEPTAR Y GUARDAR</Text>
+                          <Text style={{ color: 'white' }}> ACEPTAR Y GUARDAR   </Text>
                         </TouchableOpacity>
                       </View>
                     </>
