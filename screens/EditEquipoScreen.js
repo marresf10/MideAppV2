@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   View,
+  ScrollView,
 } from 'react-native';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { baseUrl } from '../configuration/database';
@@ -149,6 +150,10 @@ const EditEquipoScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+    <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
       <Text style={styles.label}>Descripción</Text>
       <TextInput
         style={styles.input}
@@ -250,6 +255,7 @@ const EditEquipoScreen = ({ route, navigation }) => {
       <TouchableOpacity style={styles.saveButton} onPress={saveChanges}>
         <Text style={styles.saveButtonText}>Guardar Cambios</Text>
       </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 };
